@@ -26,11 +26,11 @@ pip3 install -r requirements.txt
 
 5) Создайте .env файл с таким содержанием:
 ```
-DERBIT_CLIENT_ID=<ID Клиента>
-DERBIT_CLIENT_SECRET=<Секрет Клиента>
-REDIS_HOST=<HOST Редиса>
-REDIS_PORT =<PORT Редиса>
-REDIS_DB_NUM=<Номер БД Редиса>
+DERBIT_CLIENT_ID="<ID Клиента>"
+DERBIT_CLIENT_SECRET="<Секрет Клиента>"
+REDIS_HOST="<HOST Редиса>"
+REDIS_PORT ="<PORT Редиса>"
+REDIS_DB_NUM="<Номер БД Редиса>"
 ```
 
 6) Выполните миграции командой
