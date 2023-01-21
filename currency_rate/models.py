@@ -4,7 +4,7 @@ from django.core.validators import MinValueValidator
 
 class BtcRecords(models.Model):
     """
-        Модель для хранения финансовой информацией
+        Модель для хранения финансовой информации
     """
 
     calculation_date = models.DateTimeField("Дата Расчета")
