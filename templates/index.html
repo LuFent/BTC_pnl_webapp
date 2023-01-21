@@ -1,0 +1,139 @@
+﻿{% load static %}
+{% csrf_token %}
+
+<!DOCTYPE html>
+<html lang="ru">
+    <head>
+        <meta charset="utf-8" />
+        <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
+        <title>Расчет финансовых показателей</title>
+        <link rel="stylesheet" href="{% static 'css/bootstrap.min.css' %}" />
+        <link rel="stylesheet" href="{% static 'css/bootstrap-datetimepicker.min.css' %}" />
+    </head>
+    <body style="margin: 40px; font-size: 20px;">
+        <div class="container1" style="display: flex; flex-direction: column; align-items: flex-start;">
+            <h1 class="page-header">Расчет финансовых показателей</h1>
+
+            <div class="container2" style="display: flex; flex-direction: row; align-items: center;">
+                <div class="menu">
+                    <div class="row">
+                        <div class="col-xs-12">
+                            <h2>C какого времени</h2>
+                            <input type="text" class="form-control" id="datetimepicker1" />
+                            <h2>По какое время</h2>
+                            <input type="text" class="form-control" id="datetimepicker2" />
+                        </div>
+                    </div>
+                    <button type="button" style="margin-top: 20px;" class="btn btn-primary" id="confirm_calculation" ;>Расчитать</button>
+                </div>
+                <div>
+                    <table class="table" style="margin-left: 100; font-size: 26; margin-top: 35;">
+                        <tbody>
+                            <tr>
+                                <th scope="row">PnL</th>
+                                <td id="pnlValue"></td>
+                            </tr>
+                        </tbody>
+                        <tbody>
+                            <tr>
+                                <th scope="row">PnL %,</th>
+                                <td id="pnlPercValue"></td>
+                            </tr>
+                        </tbody>
+                        <tbody>
+                            <tr>
+                                <th scope="row">Index PnL</th>
+                                <td id="indexpnlValue"></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <script src="{% static 'js/jquery-3.2.1.min.js' %}"></script>
+        <script src="{% static 'js/moment-with-locales.min.js' %}"></script>
+        <script src="{% static 'js/bootstrap.min.js' %}"></script>
+        <script src="{% static 'js/bootstrap-datetimepicker.min.js' %}"></script>
+        <script type="text/javascript">
+            $(function () {
+                $("#datetimepicker1").datetimepicker({
+                    locale: "ru",
+                    format: "YYYY/MM/DD HH:mm:ss",
+                });
+                $("#datetimepicker2").datetimepicker({
+                    locale: "ru",
+                    format: "YYYY/MM/DD HH:mm:ss",
+                });
+            });
+        </script>
+
+        <script type="text/javascript">
+            function getCookie(name) {
+                let cookieValue = null;
+                if (document.cookie && document.cookie !== "") {
+                    const cookies = document.cookie.split(";");
+                    for (let i = 0; i < cookies.length; i++) {
+                        const cookie = cookies[i].trim();
+                        // Does this cookie string begin with the name we want?
+                        if (cookie.substring(0, name.length + 1) === name + "=") {
+                            cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                            break;
+                        }
+                    }
+                }
+                return cookieValue;
+            }
+
+            function normalizeDatetime(dateTime) {
+                dateTime = dateTime.split(" ");
+
+                date = dateTime[0].replaceAll("/", "_");
+
+                time = dateTime[1].replaceAll(":", "_");
+                normalizedDateTime = date + "_" + time;
+                return normalizedDateTime;
+            }
+
+            document.getElementById("confirm_calculation").onclick = function () {
+                const csrfToken = getCookie("csrftoken");
+                let url = "{% url 'currency_rate:get_currencies_data_by_period' %}";
+                let startDate = document.getElementById("datetimepicker1").value;
+                if (startDate) {
+                    startDate = normalizeDatetime(startDate);
+                }
+
+                let endDate = document.getElementById("datetimepicker2").value;
+                if (endDate) {
+                    endDate = normalizeDatetime(endDate);
+                }
+
+                let params = "";
+
+                if (endDate && startDate) {
+                    params += "?period_start=" + startDate + "&period_end=" + endDate;
+                } else if (startDate) {
+                    params += "?period_start=" + startDate;
+                } else if (endDate) {
+                    params += "?period_end=" + endDate;
+                }
+                url += params;
+                let xhr = new XMLHttpRequest();
+                xhr.open("GET", url, true);
+                xhr.setRequestHeader("Content-Type", "application/json");
+                xhr.setRequestHeader("X-CSRFToken", csrfToken);
+                xhr.onload = function () {
+                    if (xhr.status == 404) {
+                        alert('Не найдено информации за этот промежуток времени');
+                    } else if (xhr.status == 200) {
+                        $("#pnlValue").html(JSON.parse(xhr.responseText)["pnl"]);
+                        $("#pnlPercValue").html(JSON.parse(xhr.responseText)["pnl_%"]);
+                        $("#indexpnlValue").html(JSON.parse(xhr.responseText)["index_pnl"]);
+                    }
+                };
+                xhr.send();
+            };
+        </script>
+    </body>
+</html>
